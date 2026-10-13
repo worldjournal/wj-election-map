@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026美國期中選舉開票地圖</title>
+<style>
+:root{
+  --d:#1d58a3; --d-lean:#a9c3e7;
+  --r:#c22f38; --r-lean:#f0b1b1;
+  --i:#6a5aa6; --i-lean:#cbc2e8;
+  --ink:#15171a; --muted:#646b75; --line:#d3d8de;
+  --none:#eceff2; --bg:#fff; --pending:#fff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",system-ui,sans-serif;font-size:15px;line-height:1.55}
+.wrap{max-width:780px;margin:0 auto;padding:14px 12px 10px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;border-bottom:3px solid var(--ink);padding-bottom:8px}
+.head h1{margin:0;font-size:22px;font-weight:800;letter-spacing:.02em}
+.meta{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:#9aa1aa;flex:none}
+.dot.live{background:#d12c2c;animation:pulse 2s infinite}
+.dot.err{background:#d98a00}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.dot.live{animation:none}}
+.banner{margin:8px 0 0;padding:6px 10px;background:#fff4d6;border-left:4px solid #e0a400;font-size:13px}
+.tabs{display:flex;gap:0;margin:12px 0 0;border-bottom:1px solid var(--line)}
+.tabs button{appearance:none;border:0;background:none;font:inherit;font-size:16px;font-weight:700;color:var(--muted);padding:8px 16px 9px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.tabs button:focus-visible,.tile:focus-visible{outline:2px solid #1a73e8;outline-offset:2px}
+
+/* seat tally */
+.tally{margin:14px 0 4px}
+.nums{display:flex;justify-content:space-between;align-items:flex-end}
+.side .n{font-size:40px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.side .lbl{font-size:13px;color:var(--muted);margin-top:2px}
+.side.d .n{color:var(--d)} .side.r .n{color:var(--r)} .side.r{text-align:right}
+.mid{text-align:center;font-size:13px;color:var(--muted);padding-bottom:4px}
+.mid b{display:block;color:var(--ink);font-size:15px}
+.strip{position:relative;margin-top:8px}
+.cells{display:grid;gap:2px}
+.cell{aspect-ratio:1/1.6;border-radius:1px;background:var(--none)}
+.bar{display:flex;height:22px;background:var(--none)}
+.bar span{display:block;height:100%;transition:width .4s}
+.half{position:absolute;left:50%;top:-4px;bottom:-4px;width:0;border-left:2px solid var(--ink)}
+.c-d{background:var(--d)} .c-d-old{background:var(--d);opacity:.42}
+.c-r{background:var(--r)} .c-r-old{background:var(--r);opacity:.42}
+.c-i{background:var(--i)} .c-i-old{background:var(--i);opacity:.42}
+.c-u{background:var(--none)}
+.sublegend{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px;gap:8px}
+
+/* map + panel */
+.body{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
+@media (min-width:640px){.body{grid-template-columns:minmax(0,1.65fr) minmax(0,1fr)}}
+.map{display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(8,auto);gap:3px}
+.tile{appearance:none;border:0;font:inherit;aspect-ratio:1;padding:0;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--none);color:#8b929b;font-size:clamp(10px,2.3vw,13px);font-weight:700;letter-spacing:.02em;border-radius:2px;overflow:hidden}
+.tile small{font-size:.72em;font-weight:500;line-height:1;margin-top:1px;opacity:.85}
+.tile.pending{background:var(--pending);color:var(--ink);box-shadow:inset 0 0 0 1.5px #9aa3ad}
+.tile.lean-d{background:var(--d-lean);color:var(--ink)}
+.tile.lean-r{background:var(--r-lean);color:var(--ink)}
+.tile.lean-i{background:var(--i-lean);color:var(--ink)}
+.tile.win-d{background:var(--d);color:#fff}
+.tile.win-r{background:var(--r);color:#fff}
+.tile.win-i{background:var(--i);color:#fff}
+.tile.flip::after{content:"";position:absolute;top:0;right:0;border-style:solid;border-width:0 11px 11px 0;border-color:transparent #f5c400 transparent transparent}
+.tile.sel{box-shadow:inset 0 0 0 3px var(--ink)}
+.tile.none{cursor:default}
+
+.panel{border-top:2px solid var(--ink);padding-top:8px;min-height:180px}
+.panel h2{margin:0;font-size:19px;font-weight:800}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px;font-size:12px}
+.tag{padding:1px 7px;border:1px solid var(--line);border-radius:2px;color:var(--muted)}
+.tag.flip{border-color:#d9ac00;background:#fff6cc;color:#5c4700}
+.status{font-size:13px;color:var(--muted);margin-bottom:8px}
+.cand{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:7px 0;border-top:1px solid var(--line)}
+.cand .nm{font-weight:700}
+.cand .nm .pt{font-weight:500;color:var(--muted);font-size:13px;margin-left:4px}
+.cand .pct{font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
+.cand .vt{grid-column:1/-1;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cand .mb{grid-column:1/-1;height:5px;background:var(--none)}
+.cand .mb span{display:block;height:100%}
+.cand.won .nm::before{content:"✓ ";color:var(--ink)}
+.hint{color:var(--muted);font-size:14px}
+.hrow{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin-top:12px}
+.legend i{display:inline-block;width:12px;height:12px;vertical-align:-2px;margin-right:4px;border-radius:1px}
+.feed{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}
+.feed h3{margin:0 0 4px;font-size:14px}
+.feed ol{list-style:none;margin:0;padding:0;font-size:13px}
+.feed li{padding:3px 0;display:flex;gap:8px}
+.feed time{color:var(--muted);font-variant-numeric:tabular-nums;flex:none;width:3.6em}
+.feed .pdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:1px}
+.foot{font-size:12px;color:var(--muted);margin-top:10px;border-top:1px solid var(--line);padding-top:6px}
+
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="head">
+    <h1>2026美國期中選舉開票</h1>
+    <div class="meta"><span class="dot" id="dot"></span><span id="updated">尚無開票資料</span></div>
+  </div>
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="senate">參議院</button>
+    <button role="tab" data-tab="governor">州長</button>
+    <button role="tab" data-tab="house">眾議院</button>
+  </div>
+
+  <section class="tally" aria-live="polite">
+    <div class="nums">
+      <div class="side d"><div class="n" id="nD">0</div><div class="lbl" id="lD">民主黨</div></div>
+      <div class="mid" id="mid"></div>
+      <div class="side r"><div class="n" id="nR">0</div><div class="lbl">共和黨</div></div>
+    </div>
+    <div class="strip" id="strip"></div>
+    <div class="sublegend" id="sublegend"></div>
+  </section>
+
+  <div class="body">
+    <div class="map" id="map" role="group" aria-label="各州開票地圖"></div>
+    <aside class="panel" id="panel"></aside>
+  </div>
+
+  <div class="legend" id="legend"></div>
+  <div class="feed" id="feed" hidden><h3>最新消息</h3><ol id="feedList"></ol></div>
+  <div class="foot" id="foot"></div>
+  </div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===== 設定 ===== */
+var params = new URLSearchParams(location.search);
+/* ↓↓↓ 把Google試算表「發布到網路」的CSV連結貼在下面的引號裡 ↓↓↓ */
+var SHEET_CSV = "";
+/* ↑↑↑ */
+var SRC = params.get("sheet") || SHEET_CSV;
+var POLL_MS  = Math.max(15, Number(params.get("poll")) || 60) * 1000;
+var DEMO = params.get("demo") === "1";
+
+/* ===== 各州基本資料：代碼、中文名、方格位置(列,欄)、眾議員席次 ===== */
+var STATES = [
+ ["AK","阿拉斯加州",0,0,1],["ME","緬因州",0,11,2],
+ ["VT","佛蒙特州",1,10,1],["NH","新罕布夏州",1,11,2],
+ ["WA","華盛頓州",2,1,10],["ID","愛達荷州",2,2,2],["MT","蒙大拿州",2,3,2],["ND","北達科他州",2,4,1],["MN","明尼蘇達州",2,5,8],["IL","伊利諾州",2,6,17],["WI","威斯康辛州",2,7,8],["MI","密西根州",2,8,13],["NY","紐約州",2,9,26],["RI","羅德島州",2,10,2],["MA","麻州",2,11,9],
+ ["OR","奧勒岡州",3,1,6],["NV","內華達州",3,2,4],["WY","懷俄明州",3,3,1],["SD","南達科他州",3,4,1],["IA","愛荷華州",3,5,4],["IN","印第安納州",3,6,9],["OH","俄亥俄州",3,7,15],["PA","賓州",3,8,17],["NJ","新澤西州",3,9,12],["CT","康乃狄克州",3,10,5],
+ ["CA","加州",4,1,52],["UT","猶他州",4,2,4],["CO","科羅拉多州",4,3,8],["NE","內布拉斯加州",4,4,3],["MO","密蘇里州",4,5,8],["KY","肯塔基州",4,6,6],["WV","西維吉尼亞州",4,7,2],["VA","維吉尼亞州",4,8,11],["MD","馬里蘭州",4,9,8],["DE","德拉瓦州",4,10,1],
+ ["AZ","亞利桑那州",5,2,9],["NM","新墨西哥州",5,3,3],["KS","堪薩斯州",5,4,4],["AR","阿肯色州",5,5,4],["TN","田納西州",5,6,9],["NC","北卡羅來納州",5,7,14],["SC","南卡羅來納州",5,8,7],["DC","華府",5,9,0],
+ ["OK","奧克拉荷馬州",6,4,5],["LA","路易斯安那州",6,5,6],["MS","密西西比州",6,6,4],["AL","阿拉巴馬州",6,7,7],["GA","喬治亞州",6,8,14],
+ ["HI","夏威夷州",7,0,2],["TX","德州",7,4,38],["FL","佛羅里達州",7,9,28]
+];
+var ST = {}; STATES.forEach(function(s){ ST[s[0]] = {code:s[0], zh:s[1], row:s[2], col:s[3], seats:s[4]}; });
+
+/* 2026改選席次的現任黨籍 */
+var SENATE_UP = {
+ CO:"D",DE:"D",GA:"D",IL:"D",MA:"D",MI:"D",MN:"D",NH:"D",NJ:"D",NM:"D",OR:"D",RI:"D",VA:"D",
+ AL:"R",AK:"R",AR:"R",ID:"R",IA:"R",KS:"R",KY:"R",LA:"R",ME:"R",MS:"R",MT:"R",NE:"R",NC:"R",OK:"R",SC:"R",SD:"R",TN:"R",TX:"R",WV:"R",WY:"R",OH:"R",FL:"R"
+};
+var SENATE_SPECIAL = {OH:1, FL:1};
+var GOV_UP = {
+ AZ:"D",CA:"D",CO:"D",CT:"D",HI:"D",IL:"D",KS:"D",ME:"D",MD:"D",MA:"D",MI:"D",MN:"D",NM:"D",NY:"D",OR:"D",PA:"D",RI:"D",WI:"D",
+ AL:"R",AK:"R",AR:"R",FL:"R",GA:"R",ID:"R",IA:"R",NE:"R",NV:"R",NH:"R",OH:"R",OK:"R",SC:"R",SD:"R",TN:"R",TX:"R",VT:"R",WY:"R"
+};
+
+var CH = {
+ senate:  {name:"參議院", total:100, majority:51, up:SENATE_UP, notUp:{D:32,I:2,R:31},
+           mid:"過半 51席<br><span>共和黨50席即可控制(副總統投票)</span>", racesLabel:"參議員選舉"},
+ governor:{name:"州長", total:50, majority:null, up:GOV_UP, notUp:{D:6,I:0,R:8},
+           mid:"36州改選", racesLabel:"州長選舉"},
+ house:   {name:"眾議院", total:435, majority:218, up:null, notUp:{D:0,I:0,R:0},
+           mid:"過半 218席", racesLabel:"聯邦眾議員選舉"}
+};
+var PARTY = {D:"民主黨", R:"共和黨", I:"獨立/其他"};
+var PCOLOR = {D:"var(--d)", R:"var(--r)", I:"var(--i)"};
+
+/* ===== 狀態 ===== */
+var DATA = emptyData();
+var tab = ["senate","governor","house"].indexOf(params.get("tab")) >= 0 ? params.get("tab") : "senate";
+var selected = null;
+var lastOK = null, fetchFailed = false;
+
+function emptyData(){ return {updated:null, source:"", note:"", senate:{}, governor:{}, house:{}}; }
+function el(id){ return document.getElementById(id); }
+function mk(tag, cls, text){ var e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+function fmt(n){ return Number(n||0).toLocaleString("en-US"); }
+function etTime(iso, withDate){
+  if(!iso) return "";
+  var d = new Date(iso); if(isNaN(d)) return "";
+  var o = {timeZone:"America/New_York", hour:"numeric", minute:"2-digit", hour12:false};
+  if(withDate){ o.month="numeric"; o.day="numeric"; }
+  return new Intl.DateTimeFormat("zh-TW", o).format(d);
+}
+
+/* ===== 計算 ===== */
+function race(ch, code){ return (DATA[ch] && DATA[ch][code]) || null; }
+function leader(r){
+  if(!r || !r.cands || !r.cands.length) return null;
+  var c = r.cands.slice().sort(function(a,b){ return (b.v||0)-(a.v||0) || (b.pct||0)-(a.pct||0); });
+  return (c[0].v||c[0].pct) ? c[0].p : null;
+}
+function tally(ch){
+  var conf = CH[ch], t = {old:Object.assign({},conf.notUp), neu:{D:0,I:0,R:0}, undecided:0};
+  if(ch === "house"){
+    STATES.forEach(function(s){
+      var h = DATA.house[s.code || s[0]] || {};
+      ["D","R","I"].forEach(function(p){ t.neu[p] += Number(h[p]||0); });
+    });
+    t.undecided = conf.total - t.neu.D - t.neu.R - t.neu.I;
+  } else {
+    Object.keys(conf.up).forEach(function(c){
+      var r = race(ch,c);
+      if(r && r.status === "called" && r.winner) t.neu[r.winner]++; else t.undecided++;
+    });
+  }
+  t.sum = {D:t.old.D+t.neu.D, R:t.old.R+t.neu.R, I:t.old.I+t.neu.I};
+  return t;
+}
+
+/* ===== 繪製 ===== */
+function renderTabs(){
+  document.querySelectorAll(".tabs button").forEach(function(b){
+    b.setAttribute("aria-selected", b.dataset.tab === tab ? "true" : "false");
+  });
+}
+
+function renderTally(){
+  var conf = CH[tab], t = tally(tab);
+  el("nD").textContent = t.sum.D + t.old.I;
+  el("nR").textContent = t.sum.R;
+  el("lD").textContent = t.old.I ? "民主黨(含" + t.old.I + "名獨立派)" : "民主黨";
+  var parts = conf.mid.split("<br>");
+  el("mid").innerHTML = "<b>" + parts[0] + "</b>" + (parts[1] || "") + (t.neu.I ? "<br>獨立/其他新當選 " + t.neu.I + "席" : "");
+  var strip = el("strip"); strip.textContent = "";
+  var segs = [
+    ["c-d-old",t.old.D],["c-d",t.neu.D],["c-i-old",t.old.I],["c-i",t.neu.I],
+    ["c-u",t.undecided],["c-r",t.neu.R],["c-r-old",t.old.R]
+  ];
+  if(conf.total <= 100){
+    var cells = mk("div","cells");
+    cells.style.gridTemplateColumns = "repeat(50,1fr)";
+    if(conf.total === 100){ cells.style.gridTemplateRows = "repeat(2,auto)"; cells.style.gridAutoFlow = "column"; }
+    segs.forEach(function(s){ for(var i=0;i<s[1];i++) cells.appendChild(mk("div","cell "+s[0])); });
+    strip.appendChild(cells);
+  } else {
+    var bar = mk("div","bar");
+    segs.forEach(function(s){ if(s[1]>0){ var sp=mk("span",s[0]); sp.style.width=(s[1]/conf.total*100)+"%"; bar.appendChild(sp);} });
+    strip.appendChild(bar);
+  }
+  if(conf.majority) strip.appendChild(mk("div","half"));
+  var sl = el("sublegend"); sl.textContent = "";
+  if(tab === "house"){
+    sl.appendChild(mk("span",null,"已宣布 " + (conf.total - t.undecided) + "席"));
+    sl.appendChild(mk("span",null,"未定 " + t.undecided + "席"));
+  } else {
+    sl.appendChild(mk("span",null,"淺色：本次未改選"));
+    sl.appendChild(mk("span",null,"未定 " + t.undecided + "席"));
+  }
+}
+
+function tileState(code){
+  var s = ST[code];
+  if(tab === "house"){
+    if(!s.seats) return {cls:"none"};
+    var h = DATA.house[code] || {}, D=+h.D||0, R=+h.R||0, I=+h.I||0, done=D+R+I;
+    if(!done) return {cls:"pending", sub: s.seats + "席"};
+    var lead = D>R && D>I ? "d" : R>D && R>I ? "r" : I>D && I>R ? "i" : null;
+    if(done >= s.seats && lead) return {cls:"win-"+lead, sub:s.seats+"席"};
+    return {cls: lead ? "lean-"+lead : "pending", sub: done+"/"+s.seats};
+  }
+  var inc = CH[tab].up[code];
+  if(!inc) return {cls:"none"};
+  var r = race(tab, code);
+  if(!r || !r.status || r.status === "pending") return {cls:"pending"};
+  if(r.status === "called" && r.winner){
+    return {cls:"win-"+r.winner.toLowerCase() + (r.winner !== inc ? " flip" : "")};
+  }
+  var l = leader(r);
+  return {cls: l ? "lean-"+l.toLowerCase() : "pending", sub: r.reporting!=null ? Math.round(r.reporting)+"%" : null};
+}
+
+function renderMap(){
+  var map = el("map"); map.textContent = "";
+  STATES.forEach(function(s){
+    var code = s[0], st = tileState(code);
+    var b = mk("button","tile " + st.cls + (selected===code ? " sel" : ""));
+    b.style.gridRow = (s[2]+1); b.style.gridColumn = (s[3]+1);
+    b.appendChild(document.createTextNode(code));
+    if(st.sub) b.appendChild(mk("small",null,st.sub));
+    b.setAttribute("aria-label", ST[code].zh + (st.cls==="none" ? " 本次無此項選舉" : ""));
+    if(st.cls === "none"){ b.tabIndex = -1; }
+    else b.addEventListener("click", function(){ selected = code; render(); });
+    map.appendChild(b);
+  });
+}
+
+function renderPanel(){
+  var p = el("panel"); p.textContent = "";
+  if(!selected || tileState(selected).cls === "none"){
+    p.appendChild(mk("h2",null,CH[tab].name));
+    p.appendChild(mk("p","hint", tab==="house" ? "點選各州，查看已宣布的眾議院席次。" : "點選有改選的州，查看候選人得票與開票進度。"));
+    return;
+  }
+  var s = ST[selected];
+  p.appendChild(mk("h2",null,s.zh));
+  var tags = mk("div","tags");
+  if(tab === "house"){
+    tags.appendChild(mk("span","tag","聯邦眾議員 共" + s.seats + "席"));
+    p.appendChild(tags);
+    var h = DATA.house[selected] || {}, D=+h.D||0, R=+h.R||0, I=+h.I||0;
+    [["民主黨",D,"D"],["共和黨",R,"R"],["獨立/其他",I,"I"],["未定",s.seats-D-R-I,null]].forEach(function(x){
+      if(x[2]==="I" && !x[1]) return;
+      var row = mk("div","hrow"); row.appendChild(mk("span",null,x[0]));
+      var v = mk("b",null,x[1] + "席"); if(x[2]) v.style.color = PCOLOR[x[2]];
+      row.appendChild(v); p.appendChild(row);
+    });
+    return;
+  }
+  var inc = CH[tab].up[selected], r = race(tab, selected) || {};
+  tags.appendChild(mk("span","tag", CH[tab].racesLabel + (tab==="senate" && SENATE_SPECIAL[selected] ? "(特別選舉)" : "")));
+  tags.appendChild(mk("span","tag","現任：" + PARTY[inc]));
+  if(r.status==="called" && r.winner && r.winner!==inc) tags.appendChild(mk("span","tag flip","政黨輪替"));
+  p.appendChild(tags);
+  var stt = r.status==="called" ? "已宣布當選" + (r.calledAt ? "(美東 " + etTime(r.calledAt) + ")" : "")
+          : r.status==="counting" ? "開票中" : "尚未開票";
+  if(r.reporting!=null && r.status!=="pending") stt += "　估計已開出 " + Math.round(r.reporting) + "%";
+  p.appendChild(mk("div","status",stt));
+  var cands = (r.cands||[]).slice().sort(function(a,b){ return (b.v||0)-(a.v||0) || (b.pct||0)-(a.pct||0); });
+  var totalV = cands.reduce(function(a,c){ return a+(+c.v||0); },0);
+  cands.forEach(function(c){
+    var pct = c.pct!=null ? +c.pct : (totalV ? (c.v||0)/totalV*100 : 0);
+    var won = r.status==="called" && (r.winnerName ? c.n===r.winnerName : c.p===r.winner);
+    var row = mk("div","cand" + (won ? " won" : ""));
+    var nm = mk("div","nm",c.n||"—"); nm.appendChild(mk("span","pt",PARTY[c.p]||c.p||""));
+    row.appendChild(nm);
+    row.appendChild(mk("div","pct", pct ? pct.toFixed(1)+"%" : "—"));
+    var mb = mk("div","mb"), fill = mk("span"); fill.style.width = Math.min(100,pct)+"%"; fill.style.background = PCOLOR[c.p]||"#888"; mb.appendChild(fill); row.appendChild(mb);
+    if(c.v) row.appendChild(mk("div","vt",fmt(c.v) + "票"));
+    p.appendChild(row);
+  });
+  if(!cands.length) p.appendChild(mk("p","hint","候選人資料將於開票後更新。"));
+}
+
+function renderLegend(){
+  var L = el("legend"); L.textContent = "";
+  var items = [["var(--d)","民主黨勝選"],["var(--r)","共和黨勝選"],["var(--d-lean)","民主黨領先"],["var(--r-lean)","共和黨領先"],["#fff","尚未開票"],["var(--none)", tab==="house" ? "無" : "本次未改選"]];
+  if(tab !== "house") items.push(["#f5c400","政黨輪替(右上角)"]);
+  items.forEach(function(x){
+    if(tab==="house" && x[1]==="無") return;
+    var s = mk("span"), i = mk("i"); i.style.background = x[0];
+    if(x[0]==="#fff") i.style.boxShadow = "inset 0 0 0 1.5px #9aa3ad";
+    s.appendChild(i); s.appendChild(document.createTextNode(x[1])); L.appendChild(s);
+  });
+}
+
+function renderFeed(){
+  var list = [];
+  ["senate","governor"].forEach(function(ch){
+    Object.keys(DATA[ch]||{}).forEach(function(code){
+      var r = DATA[ch][code];
+      if(r && r.status==="called" && r.winner && CH[ch].up[code]) list.push({ch:ch, code:code, r:r});
+    });
+  });
+  list.sort(function(a,b){ return (b.r.calledAt?new Date(b.r.calledAt):0) - (a.r.calledAt?new Date(a.r.calledAt):0); });
+  var f = el("feed"), ol = el("feedList"); ol.textContent = "";
+  f.hidden = !list.length;
+  list.slice(0,6).forEach(function(x){
+    var li = mk("li"); li.appendChild(mk("time",null,etTime(x.r.calledAt)));
+    var sp = mk("span"), d = mk("span","pdot"); d.style.background = PCOLOR[x.r.winner]; sp.appendChild(d);
+    var who = x.r.winnerName || "";
+    sp.appendChild(document.createTextNode(ST[x.code].zh + (x.ch==="senate"?"參議員":"州長") + "：" + PARTY[x.r.winner] + (who ? who : "") + "勝選" + (x.r.winner!==CH[x.ch].up[x.code] ? "(政黨輪替)" : "")));
+    li.appendChild(sp); ol.appendChild(li);
+  });
+}
+
+function renderMeta(){
+  var dot = el("dot"), up = el("updated");
+  dot.className = "dot" + (fetchFailed ? " err" : (DATA.updated ? " live" : ""));
+  if(DATA.updated) up.textContent = "美東時間 " + etTime(DATA.updated, true) + " 更新" + (fetchFailed ? "(連線中斷，顯示上次資料)" : "");
+  else up.textContent = fetchFailed && lastOK ? "連線中斷，顯示上次資料" : "尚無開票資料";
+  var b = el("banner");
+  var msg = DEMO ? "測試模式：以下為模擬數字，非實際開票結果。" : (DATA.note || "");
+  b.hidden = !msg; b.textContent = msg;
+  el("foot").textContent = "資料來源：" + (DATA.source || "—") + "。";
+}
+
+function render(){
+  renderTabs(); renderTally(); renderMap(); renderPanel(); renderLegend(); renderFeed(); renderMeta(); postHeight();
+}
+
+/* ===== iframe高度回傳 ===== */
+var lastH = 0;
+function postHeight(){
+  var h = Math.ceil(document.documentElement.scrollHeight);
+  if(h !== lastH && window.parent !== window){ lastH = h; window.parent.postMessage({type:"wj-election-height", height:h}, "*"); }
+}
+window.addEventListener("resize", postHeight);
+
+/* ===== 資料載入 ===== */
+function normalize(d){
+  var o = emptyData();
+  if(!d || typeof d !== "object") return o;
+  o.updated = d.updated || null; o.source = d.source || ""; o.note = d.note || "";
+  ["senate","governor","house"].forEach(function(k){ if(d[k] && typeof d[k]==="object") o[k] = d[k]; });
+  return o;
+}
+/* CSV解析(支援引號、逗號、換行) */
+function parseCSV(t){
+  var rows=[], row=[], f="", q=false;
+  t = t.replace(/^\uFEFF/,"");
+  for(var i=0;i<t.length;i++){
+    var c=t[i];
+    if(q){ if(c==='"'){ if(t[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(f); f=""; }
+    else if(c==='\n'||c==='\r'){ if(c==='\r'&&t[i+1]==='\n') i++; row.push(f); rows.push(row); row=[]; f=""; }
+    else f+=c;
+  }
+  if(f!==""||row.length){ row.push(f); rows.push(row); }
+  return rows;
+}
+var PMAP = {"民主黨":"D","共和黨":"R","其他":"I","獨立":"I","D":"D","R":"R","I":"I"};
+var SMAP = {"尚未開票":"pending","開票中":"counting","已宣布":"called"};
+var CHMAP = {"參議院":"senate","州長":"governor","眾議院":"house"};
+function num(x){ x=String(x||"").replace(/[,\s%]/g,""); return x===""||isNaN(+x) ? null : +x; }
+function calledISO(hhmm){
+  var m = String(hhmm||"").trim().match(/^(\d{1,2})[:：](\d{2})$/); if(!m) return null;
+  var h=+m[1], day = h<12 ? "04" : "03";   // 中午前視為11月4日凌晨
+  return "2026-11-"+day+"T"+(h<10?"0":"")+h+":"+m[2]+":00-05:00";
+}
+function sheetToData(rows){
+  var d = emptyData(); if(!rows.length) return d;
+  var head = rows[0].map(function(h){ return h.trim(); });
+  function col(name){ for(var k=0;k<head.length;k++) if(head[k].indexOf(name)===0) return k; return -1; }
+  var C = {kind:col("選舉"), code:col("州代碼"), name:col("州名"), st:col("狀態"), rep:col("已開出"), win:col("勝選政黨"), wn:col("勝選人"), t:col("宣布時間"),
+           hD:col("民主黨席次"), hR:col("共和黨席次"), hI:col("其他席次")};
+  var cand = [1,2,3].map(function(n){ return {n:col("候選人"+n), p:col("政黨"+n), v:col("得票"+n)}; });
+  rows.slice(1).forEach(function(r){
+    function g(k){ return k<0 ? "" : String(r[k]||"").trim(); }
+    var kind = g(C.kind);
+    if(kind==="設定"){ var key=g(C.name), val=g(C.st); if(key==="資料來源") d.source=val; if(key==="頂端提示") d.note=val; return; }
+    var ch = CHMAP[kind], code = g(C.code).toUpperCase();
+    if(!ch || !ST[code]) return;
+    if(ch==="house"){ d.house[code] = {D:num(g(C.hD))||0, R:num(g(C.hR))||0, I:num(g(C.hI))||0}; return; }
+    var rc = {status: SMAP[g(C.st)] || "pending", cands:[]};
+    var rp = num(g(C.rep)); if(rp!=null) rc.reporting = rp;
+    cand.forEach(function(c){
+      var n=g(c.n); if(!n) return;
+      var o={n:n, p:PMAP[g(c.p)]||"I"}, v=num(g(c.v)); if(v!=null) o.v=v; rc.cands.push(o);
+    });
+    if(rc.cands.length && rc.status==="pending") rc.status="counting";
+    if(rc.status==="called"){
+      var top = rc.cands.slice().sort(function(a,b){ return (b.v||0)-(a.v||0); })[0];
+      rc.winner = PMAP[g(C.win)] || (top ? top.p : null);
+      rc.winnerName = g(C.wn) || (top && top.p===rc.winner ? top.n : "");
+      rc.calledAt = calledISO(g(C.t));
+      if(!rc.winner) rc.status="counting";
+    }
+    d[ch][code] = rc;
+  });
+  return d;
+}
+var lastText = null;
+function load(){
+  if(DEMO) return;
+  if(!SRC){ render(); return; }
+  var url = SRC + (SRC.indexOf("?")>=0 ? "&" : "?") + "t=" + Date.now();
+  fetch(url, {cache:"no-store"}).then(function(r){
+    if(!r.ok) throw new Error(r.status);
+    return r.text();
+  }).then(function(t){
+    if(t !== lastText){
+      var nd = sheetToData(parseCSV(t));
+      nd.updated = new Date().toISOString();
+      DATA = nd; lastText = t;
+    }
+    lastOK = Date.now(); fetchFailed = false; render();
+  }).catch(function(){
+    fetchFailed = !!lastOK; render();
+  });
+}
+
+/* ===== 測試模式 ===== */
+function simTick(){
+  var now = new Date().toISOString();
+  ["senate","governor"].forEach(function(ch){
+    Object.keys(CH[ch].up).forEach(function(code){
+      var inc = CH[ch].up[code];
+      var r = DATA[ch][code] || (DATA[ch][code] = {status:"pending", reporting:0, lean:(inc==="D"?0.53:0.47)+(Math.random()-.5)*0.08,
+        cands:[{n:"民主黨候選人",p:"D",v:0},{n:"共和黨候選人",p:"R",v:0}]});
+      if(r.status==="called") return;
+      if(r.status==="pending"){ if(Math.random()<.25){ r.status="counting"; } else return; }
+      var add = Math.round(Math.random()*12+3);
+      r.reporting = Math.min(99, (r.reporting||0) + add);
+      var tot = Math.round(r.reporting * 30000), dShare = r.lean + (Math.random()-.5)*0.03;
+      r.cands[0].v = Math.round(tot*dShare); r.cands[1].v = tot - r.cands[0].v;
+      var margin = Math.abs(dShare-0.5)*200;
+      if((r.reporting>55 && margin>6) || r.reporting>=95){
+        r.status="called"; r.winner = r.cands[0].v>r.cands[1].v?"D":"R"; r.calledAt = now;
+      }
+    });
+  });
+  STATES.forEach(function(s){
+    if(!s[4]) return;
+    var h = DATA.house[s[0]] || (DATA.house[s[0]] = {D:0,R:0,I:0});
+    var left = s[4]-h.D-h.R-h.I; if(left<=0 || Math.random()<.5) return;
+    var n = Math.min(left, Math.ceil(Math.random()*Math.max(1,s[4]/4)));
+    for(var i=0;i<n;i++){ if(Math.random()<.5) h.D++; else h.R++; }
+  });
+  DATA.updated = now; DATA.source = "測試資料"; render();
+}
+
+/* ===== 啟動 ===== */
+document.querySelectorAll(".tabs button").forEach(function(b){
+  b.addEventListener("click", function(){ tab = b.dataset.tab; selected = null; render(); });
+});
+render();
+if(DEMO){ simTick(); setInterval(simTick, 3000); }
+else { load(); setInterval(load, POLL_MS); }
+})();
+</script>
+</body>
+</html>
