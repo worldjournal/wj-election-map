@@ -90,7 +90,7 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
 .hint{color:var(--muted);font-size:14px}
 .hrow{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
 
-.mapnote{margin:8px 0 0;font-size:13px;color:var(--ink)}
+.mapnote{margin:16px 0 0;font-size:13px;color:var(--ink)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin-top:12px}
 .legend i{display:inline-block;width:12px;height:12px;vertical-align:-2px;margin-right:4px;border-radius:1px}
 .feed{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}
@@ -367,7 +367,7 @@ function renderLegend(){
     s.appendChild(i); s.appendChild(document.createTextNode(x[1])); L.appendChild(s);
   });
   var note = el("mapnote"); note.hidden = tab !== "house";
-  note.textContent = "格子數字為「已宣布席次／該州總席次」";
+  note.textContent = "格子內數字：已宣布席次／該州總席次";
 }
 
 function renderFeed(){
