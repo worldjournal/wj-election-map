@@ -338,6 +338,7 @@ function renderPanel(){
   p.appendChild(tags);
   var stt = r.status==="called" ? "已宣布當選" + (r.calledAt ? "(美東 " + etTime(r.calledAt) + ")" : "")
           : r.status==="counting" ? "開票中" : "尚未開票";
+  if(r.reporting!=null && r.reporting>0 && r.status!=="pending") stt += "　估計已開出 " + Math.round(r.reporting) + "%";
   p.appendChild(mk("div","status",stt));
   var cands = (r.cands||[]).slice().sort(function(a,b){ return (b.v||0)-(a.v||0) || (b.pct||0)-(a.pct||0); });
   var totalV = cands.reduce(function(a,c){ return a+(+c.v||0); },0);
@@ -534,9 +535,4 @@ document.querySelectorAll(".tabs button").forEach(function(b){
   b.addEventListener("click", function(){ tab = b.dataset.tab; selected = null; render(); });
 });
 render();
-if(DEMO){ simTick(); setInterval(simTick, 3000); }
-else { load(); setInterval(load, POLL_MS); }
-})();
-</script>
-</body>
-</html>
+if(DEMO){ sim
