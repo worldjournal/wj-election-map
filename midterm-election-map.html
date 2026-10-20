@@ -90,6 +90,7 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
 .hint{color:var(--muted);font-size:14px}
 .hrow{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
 
+.mapnote{margin:12px 0 -4px;font-size:13px;color:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin-top:12px}
 .legend i{display:inline-block;width:12px;height:12px;vertical-align:-2px;margin-right:4px;border-radius:1px}
 .feed{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}
@@ -126,6 +127,7 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
     <div class="sublegend" id="sublegend"></div>
   </section>
 
+  <p class="mapnote" id="mapnote" hidden></p>
   <div class="body">
     <div class="map" id="map" role="group" aria-label="各州開票地圖"></div>
     <aside class="panel" id="panel"></aside>
@@ -275,9 +277,9 @@ function tileState(code){
   if(tab === "house"){
     if(!s.seats) return {cls:"none"};
     var h = DATA.house[code] || {}, D=+h.D||0, R=+h.R||0, I=+h.I||0, done=D+R+I;
-    if(!done) return {cls:"pending", sub: s.seats + "席"};
+    if(!done) return {cls:"pending", sub: "0/" + s.seats};
     var lead = D>R && D>I ? "d" : R>D && R>I ? "r" : I>D && I>R ? "i" : null;
-    if(done >= s.seats && lead) return {cls:"win-"+lead, sub:s.seats+"席"};
+    if(done >= s.seats && lead) return {cls:"win-"+lead, sub: done+"/"+s.seats};
     return {cls: lead ? "lean-"+lead : "pending", sub: done+"/"+s.seats};
   }
   var inc = CH[tab].up[code];
@@ -365,6 +367,8 @@ function renderLegend(){
     if(x[0]==="#fff") i.style.boxShadow = "inset 0 0 0 1.5px #9aa3ad";
     s.appendChild(i); s.appendChild(document.createTextNode(x[1])); L.appendChild(s);
   });
+  var note = el("mapnote"); note.hidden = tab !== "house";
+  note.textContent = "格子上的數字為「已宣布席次／該州總席次」，例如3/10表示該州共10席，已宣布3席。點選各州可看各黨勝選席次。";
 }
 
 function renderFeed(){
