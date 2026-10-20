@@ -289,7 +289,7 @@ function tileState(code){
     return {cls:"win-"+r.winner.toLowerCase() + (r.winner !== inc ? " flip" : "")};
   }
   var l = leader(r);
-  return {cls: l ? "lean-"+l.toLowerCase() : "pending", sub: r.reporting!=null ? Math.round(r.reporting)+"%" : null};
+  return {cls: l ? "lean-"+l.toLowerCase() : "pending"};
 }
 
 function renderMap(){
@@ -338,7 +338,6 @@ function renderPanel(){
   p.appendChild(tags);
   var stt = r.status==="called" ? "已宣布當選" + (r.calledAt ? "(美東 " + etTime(r.calledAt) + ")" : "")
           : r.status==="counting" ? "開票中" : "尚未開票";
-  if(r.reporting!=null && r.status!=="pending") stt += "　估計已開出 " + Math.round(r.reporting) + "%";
   p.appendChild(mk("div","status",stt));
   var cands = (r.cands||[]).slice().sort(function(a,b){ return (b.v||0)-(a.v||0) || (b.pct||0)-(a.pct||0); });
   var totalV = cands.reduce(function(a,c){ return a+(+c.v||0); },0);
