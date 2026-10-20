@@ -160,6 +160,8 @@ var STATES = [
  ["OK","奧克拉荷馬",6,4,5],["LA","路州",6,5,6],["MS","密西西比",6,6,4],["AL","阿拉巴馬",6,7,7],["GA","喬州",6,8,14],
  ["HI","夏威夷",7,0,2],["TX","德州",7,4,38],["FL","佛州",7,9,28]
 ];
+/* 方格上顯示的簡稱(與右欄不同者) */
+var TILE = {WA:"華盛頓",AZ:"亞州",OK:"奧州",MN:"明州",IA:"愛阿華",IN:"印州",WI:"威州",AL:"阿州",NY:"紐約",NJ:"新州",MD:"馬州",NH:"新罕"};
 var ST = {}; STATES.forEach(function(s){ ST[s[0]] = {code:s[0], zh:s[1], row:s[2], col:s[3], seats:s[4]}; });
 
 /* 2026改選席次的現任黨籍 */
@@ -174,11 +176,11 @@ var GOV_UP = {
 };
 
 var CH = {
- senate:  {name:"參議院", total:100, majority:51, up:SENATE_UP, notUp:{D:32,I:2,R:31},
+ senate:  {name:"參院", total:100, majority:51, up:SENATE_UP, notUp:{D:32,I:2,R:31},
            mid:"過半 51席<br><span>共和黨50席即可控制(副總統投票)</span>", racesLabel:"參議員選舉"},
  governor:{name:"州長", total:50, majority:null, up:GOV_UP, notUp:{D:6,I:0,R:8},
            mid:"36州改選", racesLabel:"州長選舉"},
- house:   {name:"眾議院", total:435, majority:218, up:null, notUp:{D:0,I:0,R:0},
+ house:   {name:"眾院", total:435, majority:218, up:null, notUp:{D:0,I:0,R:0},
            mid:"過半 218席", racesLabel:"聯邦眾議員選舉"}
 };
 var PARTY = {D:"民主黨", R:"共和黨", I:"獨立/其他"};
@@ -296,7 +298,7 @@ function renderMap(){
     var code = s[0], st = tileState(code);
     var b = mk("button","tile " + st.cls + (selected===code ? " sel" : ""));
     b.style.gridRow = (s[2]+1); b.style.gridColumn = (s[3]+1);
-    var lb = mk("span","nm",ST[code].zh); lb.dataset.len = ST[code].zh.length; b.appendChild(lb);
+    var tl = TILE[code] || ST[code].zh; var lb = mk("span","nm",tl); lb.dataset.len = tl.length; b.appendChild(lb);
     if(st.sub) b.appendChild(mk("small",null,st.sub));
     b.title = ST[code].zh;
     b.setAttribute("aria-label", ST[code].zh + (st.cls==="none" ? " 本次無此項選舉" : ""));
@@ -310,7 +312,7 @@ function renderPanel(){
   var p = el("panel"); p.textContent = "";
   if(!selected || tileState(selected).cls === "none"){
     p.appendChild(mk("h2",null,CH[tab].name));
-    p.appendChild(mk("p","hint", tab==="house" ? "點選各州，查看已宣布的眾議院席次。" : "點選有改選的州，查看候選人得票與開票進度。"));
+    p.appendChild(mk("p","hint", tab==="house" ? "點選各州，查看已宣布的眾院席次。" : "點選有改選的州，查看候選人得票與開票進度。"));
     return;
   }
   var s = ST[selected];
@@ -433,7 +435,7 @@ function parseCSV(t){
 }
 var PMAP = {"民主黨":"D","共和黨":"R","其他":"I","獨立":"I","D":"D","R":"R","I":"I"};
 var SMAP = {"尚未開票":"pending","開票中":"counting","已宣布":"called"};
-var CHMAP = {"參議院":"senate","州長":"governor","眾議院":"house"};
+var CHMAP = {"參議院":"senate","參院":"senate","州長":"governor","眾議院":"house","眾院":"house"};
 function num(x){ x=String(x||"").replace(/[,\s%]/g,""); return x===""||isNaN(+x) ? null : +x; }
 function calledISO(hhmm){
   var m = String(hhmm||"").trim().match(/^(上午|下午)?\s*(\d{1,2})[:：](\d{2})(?:[:：]\d{2})?\s*(AM|PM|上午|下午)?$/i); if(!m) return null;
