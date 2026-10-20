@@ -144,7 +144,7 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
 /* ===== 設定 ===== */
 var params = new URLSearchParams(location.search);
 /* ↓↓↓ 把Google試算表「發布到網路」的CSV連結貼在下面的引號裡 ↓↓↓ */
-var SHEET_CSV = "";
+var SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxV5bYWNFRHWA6hpdGE3ymJ-udD7sBci4pViJY5PFgSlaOa_7hnPNVlhVbyNmAXSJw-WzL4s2OjGfS/pub?gid=273661968&single=true&output=csv";
 /* ↑↑↑ */
 var SRC = params.get("sheet") || SHEET_CSV;
 var POLL_MS  = Math.max(15, Number(params.get("poll")) || 60) * 1000;
@@ -398,7 +398,7 @@ function renderMeta(){
   var b = el("banner");
   var msg = DEMO ? "測試模式：以下為模擬數字，非實際開票結果。" : (DATA.note || "");
   b.hidden = !msg; b.textContent = msg;
-  el("foot").textContent = "資料來源：" + (DATA.source || "美聯社");
+  el("foot").textContent = "資料來源：" + (DATA.source || "美聯社、civicAPI");
 }
 
 function render(){
@@ -501,4 +501,47 @@ function load(){
 }
 
 /* ===== 測試模式 ===== */
-var DEMO_CANDS = {"senate":{"AK":[["Mary Peltola","D"],["Dan S. Sullivan","R"],["Dan J. Sullivan","R"],["Gerald Heikes","R"]],"AL":[["Everett Wess","D"],["Barry Moore","R"]],"AR":[["Hallie Shoffner","D"],["Tom Cotton","R"]],"CO":[["John Hickenlooper","D"],["Mark Baisley","R"]],"DE":[["Chris Coons","D"],["Michael Katz","R"]],"FL":[["Angie Nixon","D"],["Ashley Moody","R"]],"GA":[["Jon Ossoff","D"],["Mike Collins","R"]],"IA":[["Josh Turek","D"],["Ashley Hinson","R"]],"ID":[["Todd Achilles","I"],["Jim Risch","R"]],"IL":[["Juliana Stratton","D"],["Don Tracy","R"]],"KS":[["Adam Hamilton","D"],["Roger Marshall","R"]],"KY":[["Charles Booker","D"],["Andy Barr","R"]],"LA":[["Jamie Davis","D"],["Julia Letlow","R"]],"MA":[["Ed Markey","D"],["John Deaton","R"]],"ME":[["Troy Jackson","D"],["Susan Collins","R"]],"MI":[["Abdul El-Sayed","D"],["Mike Rogers","R"]],"MN":[["Peggy Flanagan","D"],["Michele Tafoya","R"]],"MS":[["Scott Colom","D"],["Cindy Hyde-Smith","R"],["Ty Pinkins","I"]],"MT":[["Alani Bankhead","D"],["Kurt Alme","R"],["Seth Bodnar","I"]],"NC":[["Roy Cooper","D"],["Michael Whatley","R"]],"NE":[["Dan Osborn","I"],["Pete Ricketts","R"]],"NH":[["Chris Pappas","D"],["John E. Sununu","R"]],"NJ":[["Cory Booker","D"],["Justin Murphy","R"]],"NM":[["Ben Ray Luján","D"],["Larry Marker","R"]],"OH":[["Sherrod Brown","D"],["Jon Husted","R"]],"OK":[["N'Kiyla Jasmine Thomas","D"],["Kevin Hern","R"]],"OR":[["Jeff Merkley","D"],["David Brock Smith","R"]],"RI":[["Jack Reed","D"],["Raymond McKay","R"]],"SC":[["Annie Andrews","D"],["Darline Graham","R"]],"SD":[["Brian Bengs","I"],["Mike Rounds","R"]],"TN":[["Ma
+var DEMO_CANDS = {"senate":{"AK":[["Mary Peltola","D"],["Dan S. Sullivan","R"],["Dan J. Sullivan","R"],["Gerald Heikes","R"]],"AL":[["Everett Wess","D"],["Barry Moore","R"]],"AR":[["Hallie Shoffner","D"],["Tom Cotton","R"]],"CO":[["John Hickenlooper","D"],["Mark Baisley","R"]],"DE":[["Chris Coons","D"],["Michael Katz","R"]],"FL":[["Angie Nixon","D"],["Ashley Moody","R"]],"GA":[["Jon Ossoff","D"],["Mike Collins","R"]],"IA":[["Josh Turek","D"],["Ashley Hinson","R"]],"ID":[["Todd Achilles","I"],["Jim Risch","R"]],"IL":[["Juliana Stratton","D"],["Don Tracy","R"]],"KS":[["Adam Hamilton","D"],["Roger Marshall","R"]],"KY":[["Charles Booker","D"],["Andy Barr","R"]],"LA":[["Jamie Davis","D"],["Julia Letlow","R"]],"MA":[["Ed Markey","D"],["John Deaton","R"]],"ME":[["Troy Jackson","D"],["Susan Collins","R"]],"MI":[["Abdul El-Sayed","D"],["Mike Rogers","R"]],"MN":[["Peggy Flanagan","D"],["Michele Tafoya","R"]],"MS":[["Scott Colom","D"],["Cindy Hyde-Smith","R"],["Ty Pinkins","I"]],"MT":[["Alani Bankhead","D"],["Kurt Alme","R"],["Seth Bodnar","I"]],"NC":[["Roy Cooper","D"],["Michael Whatley","R"]],"NE":[["Dan Osborn","I"],["Pete Ricketts","R"]],"NH":[["Chris Pappas","D"],["John E. Sununu","R"]],"NJ":[["Cory Booker","D"],["Justin Murphy","R"]],"NM":[["Ben Ray Luján","D"],["Larry Marker","R"]],"OH":[["Sherrod Brown","D"],["Jon Husted","R"]],"OK":[["N'Kiyla Jasmine Thomas","D"],["Kevin Hern","R"]],"OR":[["Jeff Merkley","D"],["David Brock Smith","R"]],"RI":[["Jack Reed","D"],["Raymond McKay","R"]],"SC":[["Annie Andrews","D"],["Darline Graham","R"]],"SD":[["Brian Bengs","I"],["Mike Rounds","R"]],"TN":[["Marquita Bradshaw","D"],["Bill Hagerty","R"]],"TX":[["James Talarico","D"],["Ken Paxton","R"]],"VA":[["Mark Warner","D"],["Bert Mizusawa","R"]],"WV":[["Rachel Fetty Anderson","D"],["Shelley Moore Capito","R"]],"WY":[["James W. Byrd","D"],["Harriet Hageman","R"]]},"governor":{"AK":[["Jonathan Kreiss-Tomkins","D"],["Dave Bronson","R"],["Treg Taylor","R"],["Bernadette Wilson","R"]],"AL":[["Doug Jones","D"],["Tommy Tuberville","R"]],"AR":[["Fredrick Love","D"],["Sarah Huckabee Sanders","R"]],"AZ":[["Katie Hobbs","D"],["Andy Biggs","R"]],"CA":[["Xavier Becerra","D"],["Steve Hilton","R"]],"CO":[["Phil Weiser","D"],["Victor Marx","R"],["Greg Lopez","I"]],"CT":[["Ned Lamont","D"],["Ryan Fazio","R"]],"FL":[["David Jolly","D"],["Byron Donalds","R"]],"GA":[["Keisha Lance Bottoms","D"],["Rick Jackson","R"]],"HI":[["Josh Green","D"],["Gary Cordery","R"]],"IA":[["Rob Sand","D"],["Zach Lahn","R"]],"ID":[["Terri Pickens","D"],["Brad Little","R"]],"IL":[["JB Pritzker","D"],["Darren Bailey","R"]],"KS":[["Cindy Holscher","D"],["Ty Masterson","R"]],"MA":[["Maura Healey","D"],["Mike Minogue","R"]],"MD":[["Wes Moore","D"],["Dan Cox","R"]],"ME":[["Hannah Pingree","D"],["Robert Charles","R"],["Rick Bennett","I"]],"MI":[["Jocelyn Benson","D"],["John James","R"]],"MN":[["Amy Klobuchar","D"],["Lisa Demuth","R"]],"NE":[["Lynne Walz","D"],["Jim Pillen","R"]],"NH":[["Cinde Warmington","D"],["Kelly Ayotte","R"]],"NM":[["Deb Haaland","D"],["Gregg Hull","R"]],"NV":[["Aaron Ford","D"],["Joe Lombardo","R"]],"NY":[["Kathy Hochul","D"],["Bruce Blakeman","R"]],"OH":[["Amy Acton","D"],["Vivek Ramaswamy","R"]],"OK":[["Cyndi Munson","D"],["Mike Mazzei","R"]],"OR":[["Tina Kotek","D"],["Christine Drazan","R"]],"PA":[["Josh Shapiro","D"],["Stacy Garrity","R"]],"RI":[["Helena Foulkes","D"],["Aaron Guckian","R"],["Ken Block","I"]],"SC":[["Jermaine Johnson","D"],["Alan Wilson","R"]],"SD":[["Dan Ahlers","D"],["Larry Rhoden","R"]],"TN":[["Jerri Green","D"],["Marsha Blackburn","R"]],"TX":[["Gina Hinojosa","D"],["Greg Abbott","R"]],"VT":[["Amanda Janoo","D"],["Phil Scott","R"]],"WI":[["David Crowley","D"],["Tom Tiffany","R"]],"WY":[["Kenneth Casner","D"],["Eric Barlow","R"]]}};
+function simTick(){
+  var now = new Date().toISOString();
+  ["senate","governor"].forEach(function(ch){
+    Object.keys(CH[ch].up).forEach(function(code){
+      var inc = CH[ch].up[code];
+      var r = DATA[ch][code] || (DATA[ch][code] = {status:"pending", reporting:0, lean:(inc==="D"?0.53:0.47)+(Math.random()-.5)*0.08,
+        cands:(DEMO_CANDS[ch][code]||[["民主黨候選人","D"],["共和黨候選人","R"]]).map(function(c){ return {n:c[0],p:c[1],v:0}; })});
+      if(r.status==="called") return;
+      if(r.status==="pending"){ if(Math.random()<.25){ r.status="counting"; } else return; }
+      var add = Math.round(Math.random()*12+3);
+      r.reporting = Math.min(99, (r.reporting||0) + add);
+      var tot = Math.round(r.reporting * 30000), dShare = r.lean + (Math.random()-.5)*0.03;
+      if(!r.w) r.w = r.cands.map(function(x){ return x.p==="D" ? dShare : x.p==="R" ? 1-dShare : 0.04+Math.random()*0.06; });
+      var wsum = r.w.reduce(function(a,b){return a+b;},0);
+      r.cands.forEach(function(x,i){ x.v = Math.round(tot * r.w[i]/wsum); });
+      var sorted = r.cands.slice().sort(function(a,b){return b.v-a.v;});
+      var margin = tot ? (sorted[0].v-(sorted[1]?sorted[1].v:0))/tot*100 : 0;
+      if((r.reporting>55 && margin>6) || r.reporting>=95){
+        r.status="called"; r.winner = sorted[0].p; r.winnerName = sorted[0].n; r.calledAt = now;
+      }
+    });
+  });
+  STATES.forEach(function(s){
+    if(!s[4]) return;
+    var h = DATA.house[s[0]] || (DATA.house[s[0]] = {D:0,R:0,I:0});
+    var left = s[4]-h.D-h.R-h.I; if(left<=0 || Math.random()<.5) return;
+    var n = Math.min(left, Math.ceil(Math.random()*Math.max(1,s[4]/4)));
+    for(var i=0;i<n;i++){ if(Math.random()<.5) h.D++; else h.R++; }
+  });
+  DATA.updated = now; DATA.source = "美聯社、civicAPI"; render();
+}
+
+/* ===== 啟動 ===== */
+document.querySelectorAll(".tabs button").forEach(function(b){
+  b.addEventListener("click", function(){ tab = b.dataset.tab; selected = null; render(); });
+});
+render();
+if(DEMO){ simTick(); setInterval(simTick, 3000); }
+else { load(); setInterval(load, POLL_MS); }
+})();
+</script>
+</body>
+</html>
