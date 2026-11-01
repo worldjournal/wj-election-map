@@ -112,8 +112,8 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
   <div class="banner" id="banner" hidden></div>
 
   <div class="tabs" role="tablist">
-    <button role="tab" data-tab="house">眾院</button>
     <button role="tab" data-tab="senate">參院</button>
+    <button role="tab" data-tab="house">眾院</button>
     <button role="tab" data-tab="governor">州長</button>
   </div>
 
@@ -189,7 +189,7 @@ var PCOLOR = {D:"var(--d)", R:"var(--r)", I:"var(--i)"};
 
 /* ===== 狀態 ===== */
 var DATA = emptyData();
-var tab = ["senate","governor","house"].indexOf(params.get("tab")) >= 0 ? params.get("tab") : "house";
+var tab = ["senate","governor","house"].indexOf(params.get("tab")) >= 0 ? params.get("tab") : "senate";
 var selected = null;
 var lastOK = null, fetchFailed = false;
 
