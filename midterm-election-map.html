@@ -193,7 +193,7 @@ var tab = ["senate","governor","house"].indexOf(params.get("tab")) >= 0 ? params
 var selected = null;
 var lastOK = null, fetchFailed = false;
 
-function emptyData(){ return {updated:null, source:"", note:"", senate:{}, governor:{}, house:{}}; }
+function emptyData(){ return {updated:null, sheetUpdated:null, source:"", note:"", senate:{}, governor:{}, house:{}}; }
 function el(id){ return document.getElementById(id); }
 function mk(tag, cls, text){ var e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
 function fmt(n){ return Number(n||0).toLocaleString("en-US"); }
@@ -203,6 +203,31 @@ function etTime(iso, withDate){
   var o = {timeZone:"America/New_York", hour:"numeric", minute:"2-digit", hour12:false};
   if(withDate){ o.month="numeric"; o.day="numeric"; }
   return new Intl.DateTimeFormat("zh-TW", o).format(d);
+}
+
+/* 把試算表「最後更新」(美東時間 M/d HH:mm，可含年份與秒)轉成時間點；解析不了回傳 null */
+function etParts(ms){
+  var p = new Intl.DateTimeFormat("en-US", {timeZone:"America/New_York", hourCycle:"h23", year:"numeric", month:"numeric", day:"numeric", hour:"numeric", minute:"numeric"}).formatToParts(new Date(ms)), o = {};
+  p.forEach(function(x){ o[x.type] = +x.value; });
+  return o;
+}
+function sheetTimeISO(txt){
+  var m = String(txt||"").trim().match(/^(?:(\d{4})[\/-])?(\d{1,2})[\/-](\d{1,2})(?:\/(\d{4}))?\s+(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if(!m) return null;
+  var y = +(m[1]||m[4]||etParts(Date.now()).year), mo=+m[2], d=+m[3], h=+m[5], mi=+m[6];
+  for(var off=4; off<=5; off++){   // 美東夏令 -4、標準時間 -5，取換算後與原值吻合者
+    var t = Date.UTC(y, mo-1, d, h, mi) + off*3600000, p = etParts(t);
+    if(p.hour===h && p.minute===mi && p.day===d) return new Date(t).toISOString();
+  }
+  return null;
+}
+var STALE_MIN = 15;                                  // 超過幾分鐘沒更新就顯示警示
+var ELECTION_START = Date.parse("2026-11-03T18:00:00-05:00");
+var ELECTION_END = Date.parse("2026-11-04T12:00:00-05:00");
+function isStale(){
+  if(DEMO || !DATA.sheetUpdated) return false;       // 沒有「最後更新」(手動作業)時不判斷
+  var now = Date.now(); if(now < ELECTION_START || now > ELECTION_END) return false;
+  return now - Date.parse(DATA.sheetUpdated) > STALE_MIN*60000;
 }
 
 /* ===== 計算 ===== */
@@ -392,13 +417,15 @@ function renderFeed(){
 
 function renderMeta(){
   var dot = el("dot"), up = el("updated");
-  dot.className = "dot" + (fetchFailed ? " err" : (DATA.updated ? " live" : ""));
+  var stale = isStale();
+  dot.className = "dot" + (fetchFailed || stale ? " err" : (DATA.updated ? " live" : ""));
   if(DATA.updated) up.textContent = "美東時間 " + etTime(DATA.updated, true) + " 更新" + (fetchFailed ? "(連線中斷，顯示上次資料)" : "");
   else up.textContent = fetchFailed && lastOK ? "連線中斷，顯示上次資料" : "尚無開票資料";
   var b = el("banner");
   var msg = DEMO ? "測試模式：以下為模擬數字，非實際開票結果。" : (DATA.note || "");
+  if(stale) msg = "資料已超過 " + STALE_MIN + " 分鐘未更新，數字可能落後，請以各州選務機關公布為準。" + (msg ? " " + msg : "");
   b.hidden = !msg; b.textContent = msg;
-  el("foot").textContent = "資料來源：" + (DATA.source || "美聯社、civicAPI");
+  el("foot").textContent = "資料來源：" + (DATA.source || "civicAPI 及各州選務機關");
 }
 
 function render(){
@@ -458,7 +485,7 @@ function sheetToData(rows){
   rows.slice(1).forEach(function(r){
     function g(k){ return k<0 ? "" : String(r[k]||"").trim(); }
     var kind = g(C.kind);
-    if(kind==="設定"){ var key=g(C.name), val=g(C.st); if(key==="資料來源") d.source=val; if(key==="頂端提示") d.note=val; return; }
+    if(kind==="設定"){ var key=g(C.name), val=g(C.st); if(key==="資料來源") d.source=val; if(key==="頂端提示") d.note=val; if(key==="最後更新") d.sheetUpdated=val; return; }
     var ch = CHMAP[kind], code = g(C.code).toUpperCase();
     if(!ch || !ST[code]) return;
     if(ch==="house"){ d.house[code] = {D:num(g(C.hD))||0, R:num(g(C.hR))||0, I:num(g(C.hI))||0}; return; }
@@ -491,7 +518,9 @@ function load(){
   }).then(function(t){
     if(t !== lastText){
       var nd = sheetToData(parseCSV(t));
-      nd.updated = new Date().toISOString();
+      var st = sheetTimeISO(nd.sheetUpdated);        // 優先用試算表寫的最後更新時間，沒有才用瀏覽器抓取時間
+      nd.sheetUpdated = st;
+      nd.updated = st || new Date().toISOString();
       DATA = nd; lastText = t;
     }
     lastOK = Date.now(); fetchFailed = false; render();
@@ -531,7 +560,7 @@ function simTick(){
     var n = Math.min(left, Math.ceil(Math.random()*Math.max(1,s[4]/4)));
     for(var i=0;i<n;i++){ if(Math.random()<.5) h.D++; else h.R++; }
   });
-  DATA.updated = now; DATA.source = "美聯社、civicAPI"; render();
+  DATA.updated = now; DATA.source = "civicAPI 及各州選務機關"; render();
 }
 
 /* ===== 啟動 ===== */
