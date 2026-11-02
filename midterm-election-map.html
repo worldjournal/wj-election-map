@@ -99,6 +99,10 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
 .feed li{padding:3px 0;display:flex;gap:8px}
 .feed time{color:var(--muted);font-variant-numeric:tabular-nums;flex:none;width:3.6em}
 .feed .pdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:1px}
+.fsbtn{appearance:none;border:1px solid var(--line);background:#fff;font:inherit;font-size:12px;color:var(--ink);padding:2px 8px;border-radius:3px;cursor:pointer;margin-left:6px}
+.fsbtn:hover{background:#f3f4f6}
+:fullscreen body,body:fullscreen{overflow:auto;background:#fff}
+:fullscreen .wrap{max-width:1100px}
 .foot{font-size:12px;color:var(--muted);margin-top:10px;border-top:1px solid var(--line);padding-top:6px}
 
 </style>
@@ -107,7 +111,7 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
 <div class="wrap" id="app">
   <div class="head">
     <h1>2026美國期中選舉開票</h1>
-    <div class="meta"><span class="dot" id="dot"></span><span id="updated">尚無開票資料</span></div>
+    <div class="meta"><span class="dot" id="dot"></span><span id="updated">尚無開票資料</span><button type="button" class="fsbtn" id="fsbtn">全螢幕</button></div>
   </div>
   <div class="banner" id="banner" hidden></div>
 
@@ -567,6 +571,19 @@ function simTick(){
 document.querySelectorAll(".tabs button").forEach(function(b){
   b.addEventListener("click", function(){ tab = b.dataset.tab; selected = null; render(); });
 });
+/* ===== 全螢幕 ===== */
+(function(){
+  var b = el("fsbtn"), d = document, root = d.documentElement;
+  function isFS(){ return !!(d.fullscreenElement || d.webkitFullscreenElement); }
+  var can = !!(d.fullscreenEnabled || d.webkitFullscreenEnabled);
+  b.addEventListener("click", function(){
+    if(!can){ window.open(location.href, "_blank"); return; }
+    if(isFS()){ (d.exitFullscreen || d.webkitExitFullscreen).call(d); }
+    else { (root.requestFullscreen || root.webkitRequestFullscreen).call(root); }
+  });
+  function upd(){ b.textContent = isFS() ? "結束全螢幕" : "全螢幕"; setTimeout(function(){ var m=el("map"); m.style.setProperty("--t", Math.max(18,(m.clientWidth-33)/12)+"px"); },50); }
+  d.addEventListener("fullscreenchange", upd); d.addEventListener("webkitfullscreenchange", upd);
+})();
 render();
 if(DEMO){ simTick(); setInterval(simTick, 3000); }
 else { load(); setInterval(load, POLL_MS); }
