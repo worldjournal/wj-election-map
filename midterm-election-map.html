@@ -576,6 +576,10 @@ document.querySelectorAll(".tabs button").forEach(function(b){
   var b = el("fsbtn"), d = document, root = d.documentElement;
   function isFS(){ return !!(d.fullscreenElement || d.webkitFullscreenElement); }
   var can = !!(d.fullscreenEnabled || d.webkitFullscreenEnabled);
+  var embedded = false; try { embedded = window.self !== window.top; } catch(e){ embedded = true; }
+  /* 手機(如iPhone)不支援真正的全螢幕，按鈕改成在新頁面開啟地圖；
+     地圖已經是單獨一頁時，按鈕沒有作用，直接隱藏 */
+  if(!can && !embedded){ b.hidden = true; }
   b.addEventListener("click", function(){
     if(!can){ window.open(location.href, "_blank"); return; }
     if(isFS()){ (d.exitFullscreen || d.webkitExitFullscreen).call(d); }
