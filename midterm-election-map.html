@@ -408,11 +408,22 @@ function renderFeed(){
       if(r && r.status==="called" && r.winner && CH[ch].up[code]) list.push({ch:ch, code:code, r:r});
     });
   });
+  Object.keys(DATA.house||{}).forEach(function(code){
+    var h = DATA.house[code]; if(!h || !ST[code]) return;
+    var done = (+h.D||0)+(+h.R||0)+(+h.I||0);
+    if(done>0 && h.at) list.push({ch:"house", code:code, r:{calledAt:h.at}, h:h, done:done});
+  });
   list.sort(function(a,b){ return (b.r.calledAt?new Date(b.r.calledAt):0) - (a.r.calledAt?new Date(a.r.calledAt):0); });
   var f = el("feed"), ol = el("feedList"); ol.textContent = "";
   f.hidden = !list.length;
   list.slice(0,6).forEach(function(x){
     var li = mk("li"); li.appendChild(mk("time",null,etTime(x.r.calledAt)));
+    if(x.ch==="house"){
+      var hs = mk("span"), parts = [];
+      if(x.h.D) parts.push("民主黨" + x.h.D); if(x.h.R) parts.push("共和黨" + x.h.R); if(x.h.I) parts.push("其他" + x.h.I);
+      hs.textContent = ST[x.code].zh + "眾院：已宣布" + x.done + "/" + ST[x.code].seats + "席(" + parts.join("、") + ")";
+      li.appendChild(hs); ol.appendChild(li); return;
+    }
     var sp = mk("span"), d = mk("span","pdot"); d.style.background = PCOLOR[x.r.winner]; sp.appendChild(d);
     var who = x.r.winnerName || "";
     sp.appendChild(document.createTextNode(ST[x.code].zh + (x.ch==="senate"?"參議員":"州長") + "：" + PARTY[x.r.winner] + (who ? who : "") + "勝選" + (x.r.winner!==CH[x.ch].up[x.code] ? "(政黨輪替)" : "")));
@@ -493,7 +504,7 @@ function sheetToData(rows){
     if(kind==="設定"){ var key=g(C.name), val=g(C.st); if(key==="資料來源") d.source=val; if(key==="頂端提示") d.note=val; if(key==="最後更新") d.sheetUpdated=val; return; }
     var ch = CHMAP[kind], code = g(C.code).toUpperCase();
     if(!ch || !ST[code]) return;
-    if(ch==="house"){ d.house[code] = {D:num(g(C.hD))||0, R:num(g(C.hR))||0, I:num(g(C.hI))||0}; return; }
+    if(ch==="house"){ d.house[code] = {D:num(g(C.hD))||0, R:num(g(C.hR))||0, I:num(g(C.hI))||0, at:calledISO(g(C.t))}; return; }
     var rc = {status: SMAP[g(C.st)] || "pending", cands:[]};
     var rp = num(g(C.rep)); if(rp!=null) rc.reporting = rp;
     cand.forEach(function(c){
@@ -564,6 +575,7 @@ function simTick(){
     var left = s[4]-h.D-h.R-h.I; if(left<=0 || Math.random()<.5) return;
     var n = Math.min(left, Math.ceil(Math.random()*Math.max(1,s[4]/4)));
     for(var i=0;i<n;i++){ if(Math.random()<.5) h.D++; else h.R++; }
+    h.at = now;
   });
   DATA.updated = now; DATA.source = "civicAPI 及各州選務機關"; render();
 }
