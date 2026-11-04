@@ -229,6 +229,7 @@ var STALE_MIN = 15;                                  // 超過幾分鐘沒更新
 var ELECTION_START = Date.parse("2026-11-03T18:00:00-05:00");
 var ELECTION_END = Date.parse("2026-11-04T12:00:00-05:00");
 function isStale(){
+  return false;                                      // 已關閉「超過15分鐘未更新」提示
   if(DEMO || !DATA.sheetUpdated) return false;       // 沒有「最後更新」(手動作業)時不判斷
   var now = Date.now(); if(now < ELECTION_START || now > ELECTION_END) return false;
   return now - Date.parse(DATA.sheetUpdated) > STALE_MIN*60000;
