@@ -93,7 +93,7 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
 .mapnote{margin:16px 0 0;font-size:13px;color:var(--ink)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin-top:12px}
 .legend i{display:inline-block;width:12px;height:12px;vertical-align:-2px;margin-right:4px;border-radius:1px}
-.feed{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}
+.feed{margin-top:10px;border:1px solid var(--line);border-radius:4px;padding:8px 12px;background:#fafafa}
 .feed h3{margin:0 0 4px;font-size:14px}
 .feed ol{list-style:none;margin:0;padding:0;font-size:13px}
 .feed li{padding:3px 0;display:flex;gap:8px}
@@ -114,6 +114,7 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
     <div class="meta"><span class="dot" id="dot"></span><span id="updated">尚無開票資料</span><button type="button" class="fsbtn" id="fsbtn">展開全螢幕</button></div>
   </div>
   <div class="banner" id="banner" hidden></div>
+  <div class="feed" id="feed" hidden><h3>最新消息</h3><ol id="feedList"></ol></div>
 
   <div class="tabs" role="tablist">
     <button role="tab" data-tab="senate">參院</button>
@@ -137,7 +138,6 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
   </div>
 
   <div class="legend" id="legend"></div>
-  <div class="feed" id="feed" hidden><h3>最新消息</h3><ol id="feedList"></ol></div>
   <div class="foot" id="foot"></div>
   </div>
 
