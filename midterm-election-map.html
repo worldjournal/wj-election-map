@@ -97,7 +97,7 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
 .feed h3{margin:0 0 4px;font-size:14px}
 .feed ol{list-style:none;margin:0;padding:0;font-size:13px}
 .feed li{padding:3px 0;display:flex;gap:8px}
-.feed time{color:var(--muted);font-variant-numeric:tabular-nums;flex:none;width:3.6em}
+.feed time{color:var(--muted);font-variant-numeric:tabular-nums;flex:none;min-width:3.6em}
 .feed .pdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:1px}
 .fsbtn{appearance:none;border:0;background:var(--d);font:inherit;font-size:14px;font-weight:700;color:#fff;padding:5px 12px;border-radius:4px;cursor:pointer;margin-left:10px;white-space:nowrap}
 .fsbtn:hover{filter:brightness(1.12)}
@@ -417,7 +417,8 @@ function renderFeed(){
   var f = el("feed"), ol = el("feedList"); ol.textContent = "";
   f.hidden = !list.length;
   list.slice(0,6).forEach(function(x){
-    var li = mk("li"); li.appendChild(mk("time",null,etTime(x.r.calledAt)));
+    var late = x.r.calledAt && new Date(x.r.calledAt) > new Date("2026-11-04T23:59:00-05:00");
+    var li = mk("li"); li.appendChild(mk("time",null,etTime(x.r.calledAt, late)));
     if(x.ch==="house"){
       var hs = mk("span"), parts = [];
       if(x.h.D) parts.push("民主黨" + x.h.D); if(x.h.R) parts.push("共和黨" + x.h.R); if(x.h.I) parts.push("其他" + x.h.I);
@@ -484,11 +485,14 @@ var SMAP = {"尚未開票":"pending","開票中":"counting","已宣布":"called"
 var CHMAP = {"參議院":"senate","參院":"senate","州長":"governor","眾議院":"house","眾院":"house"};
 function num(x){ x=String(x||"").replace(/[,\s%]/g,""); return x===""||isNaN(+x) ? null : +x; }
 function calledISO(hhmm){
-  var m = String(hhmm||"").trim().match(/^(上午|下午)?\s*(\d{1,2})[:：](\d{2})(?:[:：]\d{2})?\s*(AM|PM|上午|下午)?$/i); if(!m) return null;
+  var txt = String(hhmm||"").trim(), md = txt.match(/^(\d{1,2})\/(\d{1,2})\s+/);   // 可在前面加日期，例如「11/13 23:00」
+  if(md) txt = txt.slice(md[0].length);
+  var m = txt.match(/^(上午|下午)?\s*(\d{1,2})[:：](\d{2})(?:[:：]\d{2})?\s*(AM|PM|上午|下午)?$/i); if(!m) return null;
   var ap = (m[1]||m[4]||"").toUpperCase(), h=+m[2];
   if((ap==="PM"||ap==="下午") && h<12) h+=12; if((ap==="AM"||ap==="上午") && h===12) h=0;
   m = [null,String(h),m[3]];
-  var day = h<12 ? "04" : "03";   // 中午前視為11月4日凌晨
+  var day = h<12 ? "04" : "03";   // 沒寫日期：中午前視為11月4日凌晨
+  if(md){ var dd=+md[2]; day=(dd<10?"0":"")+dd; return "2026-"+(+md[1]<10?"0":"")+(+md[1])+"-"+day+"T"+(h<10?"0":"")+h+":"+m[2]+":00-05:00"; }
   return "2026-11-"+day+"T"+(h<10?"0":"")+h+":"+m[2]+":00-05:00";
 }
 function sheetToData(rows){
