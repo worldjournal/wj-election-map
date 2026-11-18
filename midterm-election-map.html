@@ -63,6 +63,7 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sy
 .map .tile small{font-size:calc(var(--t)*.22)}
 .tile small{font-size:.72em;font-weight:500;line-height:1;margin-top:1px;opacity:.85}
 .tile.pending{background:var(--pending);color:var(--ink);box-shadow:inset 0 0 0 1.5px #9aa3ad}
+.tile.tie{background:linear-gradient(135deg,var(--d) 0 50%,var(--r) 50% 100%);color:#fff}
 .tile.lean-d{background:var(--d-lean);color:var(--ink)}
 .tile.lean-r{background:var(--r-lean);color:var(--ink)}
 .tile.lean-i{background:var(--i-lean);color:var(--ink)}
@@ -309,7 +310,7 @@ function tileState(code){
     if(!done) return {cls:"pending", sub: "0/" + s.seats};
     var lead = D>R && D>I ? "d" : R>D && R>I ? "r" : I>D && I>R ? "i" : null;
     if(done >= s.seats && lead) return {cls:"win-"+lead, sub: done+"/"+s.seats};
-    return {cls: lead ? "lean-"+lead : "pending", sub: done+"/"+s.seats};
+    return {cls: lead ? "lean-"+lead : "tie", sub: done+"/"+s.seats};   // 兩黨席次相同 → 平分色
   }
   var inc = CH[tab].up[code];
   if(!inc) return {cls:"none"};
@@ -390,6 +391,7 @@ function renderLegend(){
   var L = el("legend"); L.textContent = "";
   var items = [["var(--d)","民主黨勝選"],["var(--r)","共和黨勝選"],["var(--d-lean)","民主黨領先"],["var(--r-lean)","共和黨領先"],["#fff","尚未開票"],["var(--none)", tab==="house" ? "無" : "本次未改選"]];
   if(tab !== "house") items.push(["#f5c400","政黨輪替(右上角)"]);
+  else items.splice(4,0,["linear-gradient(135deg,var(--d) 0 50%,var(--r) 50% 100%)","兩黨平分"]);
   items.forEach(function(x){
     if(tab==="house" && x[1]==="無") return;
     var s = mk("span"), i = mk("i"); i.style.background = x[0];
